@@ -94,15 +94,10 @@
   (vla-insertblock mspace insertion_point pipes_block_name 1 1 1 0)
 )
 
-; one time - testy
-
-
-; koniec testów
-
 ; ==========================
 ; komendy
 
-(defun c:PLAY ()
+(defun c:PLAY ( / *error* )
   (setvar "clayer" "0")
   (setq choice NIL)
   (command "_view" "TOP")
@@ -126,10 +121,13 @@
     )
   )
 
-  (if (= (cdr (assoc 2 (entget (ssname choice 0)))) "start-btn")
-    (progn
+  (cond
+    ((= (cdr (assoc 2 (entget (ssname choice 0)))) "exit-btn")
+      (exit)
+    )
+    ((= (cdr (assoc 2 (entget (ssname choice 0)))) "start-btn")
       (command "_-LAYER" "OFF" "menu" "")
-      (C:BIRD)
+      (c:BIRD)
     )
   )
 )
@@ -242,10 +240,9 @@
       (if (/= intersect_value NIL)
         (progn
           (setq pipe_y_position (cadr (vlax-safearray->list (vlax-variant-value (vlax-get-property pipe_block "InsertionPoint")))))
-          (if (or (>= (nth 1 intersect_value) (+ pipe_y_position 355)) (<= (nth 4 intersect_value) (- pipe_y_position 355)))
-            (progn
-              (setq end_game T)
-            )
+          (setq bird_y_position (cadr (vlax-safearray->list (vlax-variant-value (vlax-get-property bird_block_ref "InsertionPoint")))))
+          (if (or (> bird_y_position (+ pipe_y_position 310)) (< bird_y_position (- pipe_y_position 310)))
+            (setq end_game T)
           )
         )
       )
@@ -259,7 +256,7 @@
 
     (move_bird)
 
-    (command "_.DELAY" 10)
+    (command "_.DELAY" 5)
   )
 
   (if (= end_game T)
